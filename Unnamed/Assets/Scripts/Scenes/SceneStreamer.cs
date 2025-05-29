@@ -13,7 +13,7 @@ public class SceneStreamer : MonoBehaviour
     private HashSet<string> loadedScenes = new HashSet<string>();
     private HashSet<string> loadingScenes = new HashSet<string>(); // Scènes en cours de chargement
 
-    private float lastUpdateTime = -Mathf.Infinity;
+    private float lastLoadTime = -Mathf.Infinity;
 
     void Start()
     {
@@ -23,16 +23,16 @@ public class SceneStreamer : MonoBehaviour
 
     void Update()
     {
-        if (Time.time - lastUpdateTime < loadCooldown)
-            return;
+        if (Time.time - lastLoadTime < loadCooldown)
+            return; // Pas encore le moment
 
-        Vector2Int newCoord = GetSceneCoord(player.position);
+        Vector2Int newCoord = GetSceneCoordFromPosition(player.position);
+
         if (newCoord != currentSceneCoord)
         {
-            Debug.Log($"[SceneStreamer] Zone changed: {currentSceneCoord} → {newCoord}");
             currentSceneCoord = newCoord;
             LoadSurroundingScenes(currentSceneCoord);
-            lastUpdateTime = Time.time;
+            lastLoadTime = Time.time;
         }
     }
 
@@ -61,18 +61,18 @@ public class SceneStreamer : MonoBehaviour
     {
         HashSet<string> scenesToKeep = new HashSet<string>();
         HashSet<string> sceneToLoad = new HashSet<string>();
+        HashSet<string> sceneToUnload = new HashSet<string>();
         for (int x = -1; x <= 1; x++)
         {
             for (int y = -1; y <= 1; y++)
             {
                 Vector2Int coord = new Vector2Int(center.x + x, center.y + y);
                 string sceneName = $"Scene_{coord.x}_{coord.y}";
-                if(sceneName != $"Scene_{currentSceneCoord.x}_{currentSceneCoord.y}")scenesToKeep.Add(sceneName);
+                if(sceneName != $"Scene_{currentSceneCoord.x}_{currentSceneCoord.y}") scenesToKeep.Add(sceneName);
 
                 if (sceneName != $"Scene_{currentSceneCoord.x}_{currentSceneCoord.y}" && !loadedScenes.Contains(sceneName))
                 {
                     sceneToLoad.Add(sceneName);
-                    //Debug.Log($"[SceneStreamer] Loading: {sceneName}"); loadingScenes.Add(sceneName); SceneManager.LoadSceneAsync(sceneName, LoadSceneMode.Additive).completed += (op) => { loadingScenes.Remove(sceneName); loadedScenes.Add(sceneName); Debug.Log($"[SceneStreamer] Loaded: {sceneName}");};
                 }
             }
         }
