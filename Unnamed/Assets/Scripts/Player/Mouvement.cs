@@ -4,14 +4,17 @@ using UnityEngine;
 
 public class Mouvement : MonoBehaviour
 {
-    [Header("Player Components")]
+    [Header("Components")]
     public CharacterController player;
     public Transform groundCheck;
 
-    [Header("Player Settings")]
+    [Header("Stats")]
     public float speed = 5f;
     public float gravity = -9.81f;
     public float jumpHeight = 2f;
+    public float energy = 100f;
+    private float depletedTime = 0f;
+    public float depletionTime = 2f;
 
     [Header("Player State")]
     private Vector3 velocity;
@@ -49,13 +52,24 @@ public class Mouvement : MonoBehaviour
 
     void Sprint()
     {
-        if (Input.GetKey(KeyCode.LeftShift))
+        if (Input.GetKey(KeyCode.LeftShift) && energy > 0f)
         {
             speed = 10f;
+            energy -= Time.deltaTime * 10f;
+            if (energy < 0f)
+                energy = 0f;
+            if (energy == 0f)
+            {
+                depletedTime = Time.time;
+            }
         }
         else
         {
             speed = 5f;
+            if (energy < 100f && Time.time >= depletionTime + depletedTime)
+                energy += Time.deltaTime * 12f;
+            if (energy > 100f)
+                energy = 100f;
         }
     }
 }
