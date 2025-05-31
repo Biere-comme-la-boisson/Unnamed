@@ -5,7 +5,7 @@ using System.Collections.Generic;
 public class SceneStreamer : MonoBehaviour
 {
     public Transform player;
-    public float sceneSize = 100f;
+    public float sceneSize = 500f;
     public float loadRadius = 1;
     public float loadCooldown = 0.5f; // Temps minimal entre deux chargements
 
@@ -36,19 +36,6 @@ public class SceneStreamer : MonoBehaviour
         }
     }
 
-    Vector2Int GetSceneCoord(Vector3 pos)
-    {
-        float x = pos.x / sceneSize;
-        float z = pos.z / sceneSize;
-        Debug.Log($"[SceneStreamer] Raw pos: x={pos.x}, z={pos.z}, x/size={x}, z/size={z}");
-        return new Vector2Int(
-            Mathf.RoundToInt(pos.x / sceneSize),
-            Mathf.RoundToInt(pos.z / sceneSize)
-        );
-
-    }
-
-
     Vector2Int GetSceneCoordFromPosition(Vector3 position)
     {
         return new Vector2Int(
@@ -60,27 +47,25 @@ public class SceneStreamer : MonoBehaviour
     void LoadSurroundingScenes(Vector2Int center)
     {
         HashSet<string> scenesToKeep = new HashSet<string>();
-        HashSet<string> sceneToLoad = new HashSet<string>();
-        HashSet<string> sceneToUnload = new HashSet<string>();
-        for (int x = -1; x <= 1; x++)
-        {
-            for (int y = -1; y <= 1; y++)
-            {
-                Vector2Int coord = new Vector2Int(center.x + x, center.y + y);
-                string sceneName = $"Scene_{coord.x}_{coord.y}";
-                if(sceneName != $"Scene_{currentSceneCoord.x}_{currentSceneCoord.y}") scenesToKeep.Add(sceneName);
 
-                if (sceneName != $"Scene_{currentSceneCoord.x}_{currentSceneCoord.y}" && !loadedScenes.Contains(sceneName))
-                {
-                    sceneToLoad.Add(sceneName);
-                }
-            }
-        }
-        
-        foreach(var scene in sceneToLoad)
+        for (int x = -1; x <= 1; x++)
+        for (int y = -1; y <= 1; y++)
         {
-            SceneManager.LoadSceneAsync(scene, LoadSceneMode.Additive);
-            loadedScenes.Add(scene);
+            Vector2Int coord = new Vector2Int(center.x + x, center.y + y);
+            string sceneName = $"Scene_{coord.x}_{coord.y}";
+            scenesToKeep.Add(sceneName);
+
+            if (!loadedScenes.Contains(sceneName) && !loadingScenes.Contains(sceneName))
+            {
+                Debug.Log($"[SceneStreamer] Loading: {sceneName}");
+                loadingScenes.Add(sceneName);
+                SceneManager.LoadSceneAsync(sceneName, LoadSceneMode.Additive).completed += (op) =>
+                {
+                    loadingScenes.Remove(sceneName);
+                    loadedScenes.Add(sceneName);
+                    Debug.Log($"[SceneStreamer] Loaded: {sceneName}");
+                };
+            }
         }
 
         // Déchargement
