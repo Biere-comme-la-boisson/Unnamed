@@ -12,6 +12,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Mushroom2
       objectReference: {fileID: 0}
+    - target: {fileID: 100000, guid: c1a0aca5be3463a4ca436b69a2f2a231, type: 3}
+      propertyPath: m_TagString
+      value: Mushroom Type 2
+      objectReference: {fileID: 0}
     - target: {fileID: 400000, guid: c1a0aca5be3463a4ca436b69a2f2a231, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
